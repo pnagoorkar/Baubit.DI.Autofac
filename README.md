@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Known Vulnerabilities](https://snyk.io/test/github/pnagoorkar/Baubit.DI.Autofac/badge.svg)](https://snyk.io/test/github/pnagoorkar/Baubit.DI.Autofac)
 
-Autofac support for Baubit.DI modular dependency injection framework.
+Autofac support for [Baubit.DI](https://github.com/pnagoorkar/Baubit.DI) modular dependency injection framework.
 
 ## Table of Contents
 
