@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Samples/">
+    <Project Path="SampleConsoleApp/SampleConsoleApp.csproj" />
+  </Folder>
   <Folder Name="/SolutionItems/">
     <File Path=".circleci/config.yml" />
     <File Path=".github/copilot-instructions.md" />
