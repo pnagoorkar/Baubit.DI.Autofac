@@ -1,0 +1,44 @@
+// ============================================================================
+// Pattern 2: Modules from Code (IComponent)
+// ============================================================================
+// All modules are defined in code - no appsettings.json modules.
+// Uses IComponent to define modules programmatically.
+// ============================================================================
+
+using Baubit.DI;
+using Baubit.DI.Autofac;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
+namespace SampleConsoleApp;
+
+public static class ModulesLoadedFromExplicitlyGivenComponent
+{
+    public static async Task RunAsync()
+    {
+        // Build host with modules from code only (no appsettings.json)
+        // Create an empty configuration that specifies the Autofac factory
+        var configDict = new Dictionary<string, string?>
+        {
+            { "serviceProviderFactoryType", typeof(Baubit.DI.Autofac.ServiceProviderFactory).AssemblyQualifiedName }
+        };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configDict)
+            .Build();
+        
+        var builder = Host.CreateEmptyApplicationBuilder(new HostApplicationBuilderSettings());
+        builder.UseConfiguredServiceProviderFactory(
+            configuration: configuration,
+            componentsFactory: () => [new CodeGreetingComponent("Hello from Autofac code component!")]
+        );
+        
+        using var host = builder.Build();
+        
+        // Verify the module was loaded from code
+        var greetingService = host.Services.GetRequiredService<IGreetingService>();
+        Console.WriteLine($"  {greetingService.GetGreeting()}");
+        
+        await Task.CompletedTask;
+    }
+}
