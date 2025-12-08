@@ -3,8 +3,9 @@
 [![CircleCI](https://dl.circleci.com/status-badge/img/circleci/TpM4QUH8Djox7cjDaNpup5/2zTgJzKbD2m3nXCf5LKvqS/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/TpM4QUH8Djox7cjDaNpup5/2zTgJzKbD2m3nXCf5LKvqS/tree/master)
 [![codecov](https://codecov.io/gh/pnagoorkar/Baubit.DI.Autofac/branch/master/graph/badge.svg)](https://codecov.io/gh/pnagoorkar/Baubit.DI.Autofac)<br/>
 [![NuGet](https://img.shields.io/nuget/v/Baubit.DI.Autofac.svg)](https://www.nuget.org/packages/Baubit.DI.Autofac/)
-![.NET Standard 2.0](https://img.shields.io/badge/.NET%20Standard-2.0-512BD4?logo=dotnet&logoColor=white)<br/>
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![NuGet](https://img.shields.io/nuget/dt/Baubit.Autofac.svg)](https://www.nuget.org/packages/Baubit.Autofac) <br/>
+![.NET Standard 2.0](https://img.shields.io/badge/.NET%20Standard-2.0-512BD4?logo=dotnet&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)<br/>
 [![Known Vulnerabilities](https://snyk.io/test/github/pnagoorkar/Baubit.DI.Autofac/badge.svg)](https://snyk.io/test/github/pnagoorkar/Baubit.DI.Autofac)
 
 Autofac support for [Baubit.DI](https://github.com/pnagoorkar/Baubit.DI) modular dependency injection framework.
