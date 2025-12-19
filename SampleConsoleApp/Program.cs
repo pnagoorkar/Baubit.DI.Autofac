@@ -130,7 +130,7 @@ public class GreetingModule : Baubit.DI.Autofac.AModule<GreetingModuleConfigurat
 /// <summary>
 /// Configuration for standard DI DataModule.
 /// </summary>
-public class DataModuleConfiguration : Baubit.DI.AConfiguration
+public class DataModuleConfiguration : Baubit.DI.Configuration
 {
     public string Data { get; set; } = "Default data";
 }
@@ -140,7 +140,7 @@ public class DataModuleConfiguration : Baubit.DI.AConfiguration
 /// This demonstrates mixed module support where some modules use Autofac
 /// and others use standard Microsoft DI.
 /// </summary>
-public class DataModule : Baubit.DI.AModule<DataModuleConfiguration>
+public class DataModule : Baubit.DI.Module<DataModuleConfiguration>
 {
     public DataModule(IConfiguration configuration) : base(configuration) { }
 
@@ -162,7 +162,7 @@ public class DataModule : Baubit.DI.AModule<DataModuleConfiguration>
 /// <summary>
 /// A component that creates Autofac GreetingModule in code with a custom message.
 /// </summary>
-public class CodeGreetingComponent : AComponent
+public class CodeGreetingComponent : Component
 {
     private readonly string _message;
 
@@ -176,14 +176,14 @@ public class CodeGreetingComponent : AComponent
         return componentBuilder.WithModule<GreetingModule, GreetingModuleConfiguration>(config =>
         {
             config.Message = _message;
-        });
+        }, config => new GreetingModule(config));
     }
 }
 
 /// <summary>
 /// A component that creates standard DI DataModule in code.
 /// </summary>
-public class CodeDataComponent : AComponent
+public class CodeDataComponent : Component
 {
     private readonly string _data;
 
@@ -197,7 +197,7 @@ public class CodeDataComponent : AComponent
         return componentBuilder.WithModule<DataModule, DataModuleConfiguration>(config =>
         {
             config.Data = _data;
-        });
+        }, config => new DataModule(config));
     }
 }
 

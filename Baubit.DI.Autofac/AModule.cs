@@ -11,7 +11,7 @@ namespace Baubit.DI.Autofac
     /// </summary>
     /// <typeparam name="TConfiguration">The type of configuration for this module, must inherit from <see cref="AConfiguration"/>.</typeparam>
     /// <remarks>
-    /// This class extends <see cref="Baubit.DI.AModule{TConfiguration}"/> to provide Autofac-specific module functionality.
+    /// This class extends <see cref="Baubit.DI.Module{TConfiguration}"/> to provide Autofac-specific module functionality.
     /// Unlike standard DI modules that use IServiceCollection, Autofac modules register services using ContainerBuilder,
     /// enabling advanced Autofac features like interceptors, decorators, and custom lifetime scopes.
     /// 
@@ -21,9 +21,9 @@ namespace Baubit.DI.Autofac
     /// 1. Create a configuration class inheriting from <see cref="AConfiguration"/>
     /// 2. Create a module class inheriting from this class
     /// 3. Override <see cref="Load(ContainerBuilder)"/> to register services using Autofac's API
-    /// 4. Optionally override <see cref="Baubit.DI.AModule.OnInitialized"/> or <see cref="Baubit.DI.AModule.GetKnownDependencies"/> as needed
+    /// 4. Optionally override <see cref="Baubit.DI.Module.OnInitialized"/> or <see cref="Baubit.DI.Module.GetKnownDependencies"/> as needed
     /// </remarks>
-    public abstract class AModule<TConfiguration> : Baubit.DI.AModule<TConfiguration>, IModule where TConfiguration : AConfiguration
+    public abstract class AModule<TConfiguration> : Baubit.DI.Module<TConfiguration>, IModule where TConfiguration : AConfiguration
     {
         /// <summary>
         /// Initializes a new instance of the module from configuration.

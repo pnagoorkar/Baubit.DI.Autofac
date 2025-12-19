@@ -22,7 +22,7 @@ namespace Baubit.DI.Autofac
     /// 
     /// Thread safety: All public members are thread-safe.
     /// </remarks>
-    public class ServiceProviderFactory : AServiceProviderFactory<ContainerBuilder>
+    public class ServiceProviderFactory : Baubit.DI.ServiceProviderFactory<ContainerBuilder>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceProviderFactory"/> class with a custom Autofac factory.

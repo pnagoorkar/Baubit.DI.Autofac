@@ -17,8 +17,8 @@ namespace Baubit.DI.Autofac.Test.ServiceProviderFactory
             // Arrange
             var configDict = new Dictionary<string, string?>
             {
-                { "modules:0:type", typeof(TestModule).AssemblyQualifiedName },
-                { "modules:0:configuration:serviceName", "Test Service from Config" }
+                { "modules:0:key", "test-autofac-module" },
+                { "modules:0:serviceName", "Test Service from Config" }
             };
             var configuration = new MsConfigurationBuilder()
                 .AddInMemoryCollection(configDict)
@@ -65,8 +65,8 @@ namespace Baubit.DI.Autofac.Test.ServiceProviderFactory
             // Arrange
             var configDict = new Dictionary<string, string?>
             {
-                { "modules:0:type", typeof(TestModule).AssemblyQualifiedName },
-                { "modules:0:configuration:serviceName", "Autofac Test Service" }
+                { "modules:0:key", "test-autofac-module" },
+                { "modules:0:serviceName", "Autofac Test Service" }
             };
             var configuration = new MsConfigurationBuilder()
                 .AddInMemoryCollection(configDict)
@@ -91,10 +91,10 @@ namespace Baubit.DI.Autofac.Test.ServiceProviderFactory
             // Arrange
             var configDict = new Dictionary<string, string?>
             {
-                { "modules:0:type", typeof(TestModule).AssemblyQualifiedName },
-                { "modules:0:configuration:serviceName", "Autofac Module" },
-                { "modules:1:type", typeof(StandardDITestModule).AssemblyQualifiedName },
-                { "modules:1:configuration:message", "Standard DI Module" }
+                { "modules:0:key", "test-autofac-module" },
+                { "modules:0:serviceName", "Autofac Module" },
+                { "modules:1:key", "test-standard-di-module" },
+                { "modules:1:message", "Standard DI Module" }
             };
             var configuration = new MsConfigurationBuilder()
                 .AddInMemoryCollection(configDict)
@@ -194,8 +194,8 @@ namespace Baubit.DI.Autofac.Test.ServiceProviderFactory
             // Arrange
             var configDict = new Dictionary<string, string?>
             {
-                { "modules:0:type", typeof(TestModule).AssemblyQualifiedName },
-                { "modules:0:configuration:serviceName", "Module 1" }
+                { "modules:0:key", "test-autofac-module" },
+                { "modules:0:serviceName", "Module 1" }
             };
             var configuration = new MsConfigurationBuilder()
                 .AddInMemoryCollection(configDict)
@@ -216,8 +216,8 @@ namespace Baubit.DI.Autofac.Test.ServiceProviderFactory
             // Arrange
             var configDict = new Dictionary<string, string?>
             {
-                { "modules:0:type", typeof(StandardDITestModule).AssemblyQualifiedName },
-                { "modules:0:configuration:message", "From Config" }
+                { "modules:0:key", "test-standard-di-module" },
+                { "modules:0:message", "From Config" }
             };
             var configuration = new MsConfigurationBuilder()
                 .AddInMemoryCollection(configDict)
