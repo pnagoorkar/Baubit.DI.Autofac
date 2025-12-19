@@ -14,6 +14,7 @@ Autofac support for [Baubit.DI](https://github.com/pnagoorkar/Baubit.DI) modular
 
 - [Installation](#installation)
 - [Overview](#overview)
+- [Security](#security)
 - [Quick Start](#quick-start)
   - [1. Define a Configuration](#1-define-a-configuration)
   - [2. Create an Autofac Module](#2-create-an-autofac-module)
@@ -23,6 +24,7 @@ Autofac support for [Baubit.DI](https://github.com/pnagoorkar/Baubit.DI) modular
   - [Pattern 3: Hybrid Loading](#pattern-3-hybrid-loading-appsettingsjson--icomponent)
   - [Pattern 4: Mixed Autofac and Standard DI Modules](#pattern-4-mixed-autofac-and-standard-di-modules)
 - [Module Configuration in appsettings.json](#module-configuration-in-appsettingsjson)
+- [Consumer Module Registration](#consumer-module-registration)
 - [API Reference](#api-reference)
 - [License](#license)
 
@@ -42,12 +44,23 @@ Baubit.DI.Autofac extends Baubit.DI's modular dependency injection framework wit
 - **Mixed module support**: Use both Autofac modules and standard DI modules in the same application
 - Full access to Autofac's advanced features (interceptors, decorators, lifetime scopes)
 
+## Security
+
+Baubit.DI.Autofac uses compile-time module discovery to eliminate remote code execution (RCE) vulnerabilities from configuration-driven module loading. Modules must be annotated with `[BaubitModule]` and discovered at compile time. Configuration can only select from these pre-registered modules using simple string keys instead of assembly-qualified type names.
+
+**Key security features:**
+- No reflection-based type loading from configuration
+- Compile-time validation of module definitions
+- Configuration uses simple string keys, not type names
+- Consumer assemblies can register their own modules using `[GeneratedModuleRegistry]`
+- Service provider factory must be explicitly specified (no dynamic type loading from configuration)
+
 ## Quick Start
 
 ### 1. Define a Configuration
 
 ```csharp
-public class MyModuleConfiguration : Baubit.DI.Autofac.AConfiguration
+public class MyModuleConfiguration : Baubit.DI.Autofac.Configuration
 {
     public string ConnectionString { get; set; }
     public int PoolSize { get; set; } = 10;
@@ -57,7 +70,8 @@ public class MyModuleConfiguration : Baubit.DI.Autofac.AConfiguration
 ### 2. Create an Autofac Module
 
 ```csharp
-public class MyModule : Baubit.DI.Autofac.AModule<MyModuleConfiguration>
+[BaubitModule("mymodule")]  // Required for configuration-based loading
+public class MyModule : Baubit.DI.Autofac.Module<MyModuleConfiguration>
 {
     // Constructor for loading from IConfiguration (appsettings.json)
     public MyModule(IConfiguration configuration)
@@ -78,20 +92,28 @@ public class MyModule : Baubit.DI.Autofac.AModule<MyModuleConfiguration>
 }
 ```
 
+**Note**: The `[BaubitModule("key")]` attribute registers your module for compile-time validated, secure configuration loading. The key is used in `appsettings.json` instead of assembly-qualified type names.
+
 ---
 
 ## Application Creation Patterns
 
 Baubit.DI.Autofac supports four patterns for creating applications.
 
+> **Important:** You must call the `Register()` method on each module registry (typically 1 per library) before module loading. See [Consumer Module Registration](#consumer-module-registration).
+
 ### Pattern 1: Modules from appsettings.json
 
 Load ALL modules from configuration. Module types, their configurations, and nested modules are defined in JSON.
 
 ```csharp
-// appsettings.json specifies serviceProviderFactoryType and modules
+// Register consumer modules first
+MyModuleRegistry.Register();
+
+// appsettings.json defines all modules
+// Must explicitly specify Autofac factory for security
 await Host.CreateApplicationBuilder()
-          .UseConfiguredServiceProviderFactory()
+          .UseConfiguredServiceProviderFactory<HostApplicationBuilder, Baubit.DI.Autofac.ServiceProviderFactory>()
           .Build()
           .RunAsync();
 ```
@@ -99,10 +121,9 @@ await Host.CreateApplicationBuilder()
 **appsettings.json:**
 ```json
 {
-  "serviceProviderFactoryType": "Baubit.DI.Autofac.ServiceProviderFactory, Baubit.DI.Autofac",
   "modules": [
     {
-      "type": "MyNamespace.MyModule, MyAssembly",
+      "key": "mymodule",
       "configuration": {
         "connectionString": "Server=localhost;Database=mydb",
         "poolSize": 20
@@ -124,29 +145,28 @@ await Host.CreateApplicationBuilder()
 Load ALL modules programmatically using `IComponent`. No configuration file needed.
 
 ```csharp
+// Register consumer modules first
+MyModuleRegistry.Register();
+
 // Define a component that builds modules in code
-public class MyComponent : AComponent
+public class MyComponent : Component
 {
     protected override Result<ComponentBuilder> Build(ComponentBuilder builder)
     {
-        return builder.WithModule<MyModule, MyModuleConfiguration>(cfg =>
-        {
-            cfg.ConnectionString = "Server=localhost;Database=mydb";
-            cfg.PoolSize = 20;
-        });
+        return builder.WithModule<MyModule, MyModuleConfiguration>(
+            cfg =>
+            {
+                cfg.ConnectionString = "Server=localhost;Database=mydb";
+                cfg.PoolSize = 20;
+            },
+            cfg => new MyModule(cfg)
+        );
     }
 }
 
 // Load modules from component only (no appsettings.json)
-var configDict = new Dictionary<string, string?>
-{
-    { "serviceProviderFactoryType", typeof(Baubit.DI.Autofac.ServiceProviderFactory).AssemblyQualifiedName }
-};
-var configuration = new ConfigurationBuilder().AddInMemoryCollection(configDict).Build();
-
 await Host.CreateEmptyApplicationBuilder(new HostApplicationBuilderSettings())
-          .UseConfiguredServiceProviderFactory(
-              configuration: configuration,
+          .UseConfiguredServiceProviderFactory<HostApplicationBuilder, Baubit.DI.Autofac.ServiceProviderFactory>(
               componentsFactory: () => [new MyComponent()]
           )
           .Build()
@@ -162,12 +182,17 @@ await Host.CreateEmptyApplicationBuilder(new HostApplicationBuilderSettings())
 
 ### Pattern 3: Hybrid Loading (appsettings.json + IComponent)
 
-Combine BOTH configuration-based and code-based module loading.
+Combine BOTH configuration-based and code-based module loading. This is the most flexible approach.
 
 ```csharp
+// Register consumer modules first
+MyModuleRegistry.Register();
+
 // Load modules from BOTH appsettings.json AND code
 await Host.CreateApplicationBuilder()
-          .UseConfiguredServiceProviderFactory(componentsFactory: () => [new MyComponent()])
+          .UseConfiguredServiceProviderFactory<HostApplicationBuilder, Baubit.DI.Autofac.ServiceProviderFactory>(
+              componentsFactory: () => [new MyComponent()]
+          )
           .Build()
           .RunAsync();
 ```
@@ -183,13 +208,16 @@ await Host.CreateApplicationBuilder()
 
 ---
 
-## Mixing Autofac and Standard DI Modules
+### Pattern 4: Mixed Autofac and Standard DI Modules
 
 You can use **BOTH** Autofac modules and standard DI modules in the same application **as long as** you use `Baubit.DI.Autofac.ServiceProviderFactory`.
 
 ```csharp
+// Register consumer modules first
+MyModuleRegistry.Register();
+
 // Autofac module using ContainerBuilder
-public class AutofacModule : Baubit.DI.Autofac.AModule<MyConfig>
+public class AutofacModule : Baubit.DI.Autofac.Module<MyConfig>
 {
     public override void Load(ContainerBuilder containerBuilder)
     {
@@ -198,7 +226,7 @@ public class AutofacModule : Baubit.DI.Autofac.AModule<MyConfig>
 }
 
 // Standard DI module using IServiceCollection
-public class StandardModule : Baubit.DI.AModule<StandardConfig>
+public class StandardModule : Baubit.DI.Module<StandardConfig>
 {
     public override void Load(IServiceCollection services)
     {
@@ -233,22 +261,23 @@ await Host.CreateEmptyApplicationBuilder(new HostApplicationBuilderSettings())
 
 ## Module Configuration in appsettings.json
 
-Module configurations follow the same patterns as Baubit.DI:
+Module configurations can be defined in three ways:
 
 ### Direct Configuration
 
+Configuration values are enclosed in a `configuration` section:
+
 ```json
 {
-  "serviceProviderFactoryType": "Baubit.DI.Autofac.ServiceProviderFactory, Baubit.DI.Autofac",
   "modules": [
     {
-      "type": "MyNamespace.MyModule, MyAssembly",
+      "key": "mymodule",
       "configuration": {
         "connectionString": "Server=localhost;Database=mydb",
         "poolSize": 20,
         "modules": [
           {
-            "type": "MyNamespace.NestedModule, MyAssembly",
+            "key": "nested-module",
             "configuration": { }
           }
         ]
@@ -260,12 +289,13 @@ Module configurations follow the same patterns as Baubit.DI:
 
 ### Indirect Configuration
 
+Configuration is loaded from external sources via `configurationSource`:
+
 ```json
 {
-  "serviceProviderFactoryType": "Baubit.DI.Autofac.ServiceProviderFactory, Baubit.DI.Autofac",
   "modules": [    
     {
-      "type": "MyNamespace.MyModule, MyAssembly",
+      "key": "mymodule",
       "configurationSource": {
         "jsonUriStrings": ["file://path/to/config.json"]
       }
@@ -274,13 +304,185 @@ Module configurations follow the same patterns as Baubit.DI:
 }
 ```
 
+**config.json:**
+```json
+{
+  "connectionString": "Server=localhost;Database=mydb",
+  "poolSize": 20,
+  "modules": [    
+    {
+      "key": "nested-module",
+      "configuration": {
+        "somePropKey": "some_prop_value"
+      }
+    }
+  ]
+}
+```
+
 ### Hybrid Configuration
 
-Combine direct values with external sources as documented in [Baubit.DI](https://github.com/pnagoorkar/Baubit.DI#module-configuration-in-appsettingsjson).
+Combine direct values with external sources:
+
+```json
+{
+  "modules": [
+    {
+      "key": "mymodule",
+      "configuration": {
+        "connectionString": "Server=localhost;Database=mydb"
+      },
+      "configurationSource": {
+        "jsonUriStrings": ["file://path/to/additional.json"]
+      }
+    }
+  ]
+}
+```
+
+**additional.json:**
+```json
+{
+  "poolSize": 20,
+  "modules": [
+    {
+      "key": "nested-module",
+      "configuration": { }
+    }
+  ]
+}
+```
+
+---
+
+## Consumer Module Registration
+
+Consumer projects (test projects, libraries, plugins) can register their own modules using the `[GeneratedModuleRegistry]` attribute.
+
+**Important:** Registry registration must be called **before** any module loading operations.
+
+### Step 1: Install Baubit.DI.Autofac
+
+```bash
+dotnet add package Baubit.DI.Autofac
+```
+
+The generator is automatically included via the Baubit.DI dependency.
+
+### Step 2: Create a Registry Class
+
+```csharp
+using Baubit.DI;
+
+namespace MyProject
+{
+    [GeneratedModuleRegistry]
+    internal static partial class MyModuleRegistry
+    {
+        // Register() method will be generated automatically
+    }
+}
+```
+
+The generator discovers all modules in your assembly marked with `[BaubitModule]` and generates a `Register()` method in your namespace.
+
+### Step 3: Define Your Modules
+
+```csharp
+[BaubitModule("my-custom-module")]
+public class MyCustomModule : Baubit.DI.Autofac.Module<MyConfig>
+{
+    public MyCustomModule(IConfiguration config) : base(config) { }
+    
+    public override void Load(ContainerBuilder containerBuilder)
+    {
+        containerBuilder.RegisterType<MyService>().As<IMyService>().SingleInstance();
+    }
+}
+```
+
+### Step 4: Register at Startup
+
+**Critical:** Call `Register()` before any module loading:
+
+```csharp
+// MUST be called before any module loading
+MyModuleRegistry.Register();
+
+// Now your modules are available in configuration
+await Host.CreateApplicationBuilder()
+          .UseConfiguredServiceProviderFactory<HostApplicationBuilder, Baubit.DI.Autofac.ServiceProviderFactory>()
+          .Build()
+          .RunAsync();
+```
+
+**Why this is required:**
+- The main `Baubit.DI.ModuleRegistry` only knows about modules in the Baubit.DI assembly
+- Consumer assemblies must explicitly register their modules with `ModuleRegistry.RegisterExternal()`
+- The generated `Register()` method does this automatically
+- Registration must happen before `UseConfiguredServiceProviderFactory()` initializes the registry
+
+**Configuration:**
+```json
+{
+  "modules": [
+    {
+      "key": "my-custom-module",
+      "configuration": { }
+    }
+  ]
+}
+```
 
 ---
 
 ## API Reference
+
+<details>
+<summary><strong>BaubitModuleAttribute</strong></summary>
+
+Marks a module class for compile-time discovery and registration.
+
+| Property | Description |
+|----------|-------------|
+| `Key` | Unique string key used in configuration to identify this module |
+
+**Usage:**
+```csharp
+[BaubitModule("mymodule")]
+public class MyModule : Baubit.DI.Autofac.Module<MyConfig> { }
+```
+
+**Requirements:**
+- Key must be unique across all modules in the compilation
+- Module must implement `IModule`
+- Module must have a constructor accepting `IConfiguration`
+
+</details>
+
+<details>
+<summary><strong>GeneratedModuleRegistryAttribute</strong></summary>
+
+Marks a partial class to receive generated module registry methods for consumer assemblies.
+
+**Usage:**
+```csharp
+[GeneratedModuleRegistry]
+internal static partial class MyModuleRegistry
+{
+    // Register() method generated automatically
+}
+
+// At application startup:
+MyModuleRegistry.Register();
+```
+
+**Purpose:**
+- Allows test projects to register test-specific modules
+- Enables consumer libraries to provide their own modules
+- Supports plugin architectures with distributed modules
+
+</details>
 
 <details>
 <summary><strong>IModule</strong></summary>
@@ -296,14 +498,14 @@ Interface for Autofac dependency injection modules.
 </details>
 
 <details>
-<summary><strong>AModule / AModule&lt;TConfiguration&gt;</strong></summary>
+<summary><strong>Module / Module&lt;TConfiguration&gt;</strong></summary>
 
 Abstract base classes for Autofac modules.
 
 | Constructor | Description |
 |-------------|-------------|
-| `AModule(TConfiguration, List<IModule>)` | Create with config and nested modules |
-| `AModule(IConfiguration)` | Create from IConfiguration section |
+| `Module(TConfiguration, List<IModule>)` | Create with config and nested modules |
+| `Module(IConfiguration)` | Create from IConfiguration section |
 
 | Virtual Method | Description |
 |----------------|-------------|
@@ -343,15 +545,15 @@ The `Load` method automatically detects module types:
 </details>
 
 <details>
-<summary><strong>AConfiguration</strong></summary>
+<summary><strong>Configuration</strong></summary>
 
-Abstract base class for Autofac module configurations. Extends `Baubit.DI.AConfiguration`.
+Abstract base class for Autofac module configurations. Extends `Baubit.DI.Configuration`.
 
 </details>
 
 ---
 
-For additional API reference on base interfaces and classes (`IComponent`, `AComponent`, `ComponentBuilder`, `ModuleBuilder`, etc.), see [Baubit.DI API Reference](https://github.com/pnagoorkar/Baubit.DI#api-reference).
+For additional API reference on base interfaces and classes (`IComponent`, `Component`, `ComponentBuilder`, `ModuleBuilder`, etc.), see [Baubit.DI API Reference](https://github.com/pnagoorkar/Baubit.DI#api-reference).
 
 ## License
 

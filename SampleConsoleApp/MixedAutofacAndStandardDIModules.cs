@@ -21,17 +21,10 @@ public static class MixedAutofacAndStandardDIModules
         // Build host with BOTH Autofac and standard DI modules
         // - CodeGreetingComponent uses Autofac's ContainerBuilder
         // - CodeDataComponent uses standard IServiceCollection
-        var configDict = new Dictionary<string, string?>
-        {
-            { "serviceProviderFactoryType", typeof(Baubit.DI.Autofac.ServiceProviderFactory).AssemblyQualifiedName }
-        };
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configDict)
-            .Build();
-        
         var builder = Host.CreateEmptyApplicationBuilder(new HostApplicationBuilderSettings());
-        builder.UseConfiguredServiceProviderFactory(
-            configuration: configuration,
+        
+        // Explicitly specify the Autofac service provider factory
+        builder.UseConfiguredServiceProviderFactory<HostApplicationBuilder, Baubit.DI.Autofac.ServiceProviderFactory>(
             componentsFactory: () =>
             [
                 new CodeGreetingComponent("Hello from Autofac module!"),

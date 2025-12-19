@@ -18,12 +18,15 @@ public static class ModulesLoadedFromAppsettings
     public static async Task RunAsync()
     {
         // Build host with modules from appsettings.json only
-        // For Autofac, we need to explicitly specify the factory type in configuration
-        var builder = Host.CreateApplicationBuilder();
+        // Must explicitly specify Autofac factory type for security
+        var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+        {
+            Args = Array.Empty<string>(),
+            ContentRootPath = AppContext.BaseDirectory
+        });
         
-        // Since appsettings.json already specifies the serviceProviderFactoryType,
-        // the framework will automatically use the Autofac factory
-        builder.UseConfiguredServiceProviderFactory();
+        // Explicitly specify the Autofac service provider factory
+        builder.UseConfiguredServiceProviderFactory<HostApplicationBuilder, Baubit.DI.Autofac.ServiceProviderFactory>();
         
         using var host = builder.Build();
         
