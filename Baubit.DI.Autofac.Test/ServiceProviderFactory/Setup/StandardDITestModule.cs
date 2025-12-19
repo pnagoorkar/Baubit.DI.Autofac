@@ -1,3 +1,4 @@
+using Baubit.DI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ namespace Baubit.DI.Autofac.Test.ServiceProviderFactory.Setup
     /// <summary>
     /// Configuration for standard DI test module.
     /// </summary>
-    public class StandardDITestConfiguration : Baubit.DI.AConfiguration
+    public class StandardDITestConfiguration : Baubit.DI.Configuration
     {
         public string Message { get; set; } = "Default Message";
     }
@@ -16,7 +17,8 @@ namespace Baubit.DI.Autofac.Test.ServiceProviderFactory.Setup
     /// Test module that uses standard IServiceCollection (not Autofac-specific).
     /// This demonstrates mixed module support.
     /// </summary>
-    public class StandardDITestModule : Baubit.DI.AModule<StandardDITestConfiguration>
+    [BaubitModule("test-standard-di-module")]
+    public class StandardDITestModule : Baubit.DI.Module<StandardDITestConfiguration>
     {
         public StandardDITestModule(IConfiguration configuration) : base(configuration) { }
 
