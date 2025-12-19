@@ -9,7 +9,7 @@
     /// modules that use Autofac's ContainerBuilder instead of IServiceCollection.
     /// Thread safety: All public members are thread-safe.
     /// </remarks>
-    public abstract class AConfiguration : Baubit.DI.Configuration
+    public abstract class Configuration : Baubit.DI.Configuration
     {
     }
 }

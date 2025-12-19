@@ -9,7 +9,7 @@ namespace Baubit.DI.Autofac.Test.ServiceProviderFactory.Setup
     /// Test module that uses Autofac ContainerBuilder for registration.
     /// </summary>
     [BaubitModule("test-autofac-module")]
-    public class TestModule : AModule<TestConfiguration>
+    public class TestModule : Module<TestConfiguration>
     {
         public TestModule(IConfiguration configuration) : base(configuration) { }
 

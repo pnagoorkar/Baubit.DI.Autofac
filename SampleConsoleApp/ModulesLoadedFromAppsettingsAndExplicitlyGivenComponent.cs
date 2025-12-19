@@ -18,8 +18,14 @@ public static class ModulesLoadedFromAppsettingsAndExplicitlyGivenComponent
     public static async Task RunAsync()
     {
         // Build host with modules from BOTH appsettings.json AND code
-        var builder = Host.CreateApplicationBuilder();
-        builder.UseConfiguredServiceProviderFactory(
+        var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+        {
+            Args = Array.Empty<string>(),
+            ContentRootPath = AppContext.BaseDirectory
+        });
+        
+        // Explicitly specify the Autofac service provider factory
+        builder.UseConfiguredServiceProviderFactory<HostApplicationBuilder, Baubit.DI.Autofac.ServiceProviderFactory>(
             componentsFactory: () => [new CodeDataComponent("Data from code component")]
         );
         

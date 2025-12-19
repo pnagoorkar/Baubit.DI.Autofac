@@ -15,6 +15,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SampleConsoleApp;
 
+// Register modules from this assembly with the secure module registry
+// This uses the source-generated Register() method
+SampleModuleRegistry.Register();
+
 Console.WriteLine("=== Baubit.DI.Autofac Sample Application ===\n");
 
 // Run each pattern sequentially so output is clear
@@ -92,7 +96,7 @@ public class DataService : IDataService
 /// - When loaded from appsettings.json, properties are bound automatically
 /// - When created in code, properties are set directly
 /// </summary>
-public class GreetingModuleConfiguration : Baubit.DI.Autofac.AConfiguration
+public class GreetingModuleConfiguration : Baubit.DI.Autofac.Configuration
 {
     public string Message { get; set; } = "Default greeting";
 }
@@ -100,11 +104,13 @@ public class GreetingModuleConfiguration : Baubit.DI.Autofac.AConfiguration
 /// <summary>
 /// A module that registers IGreetingService using Autofac ContainerBuilder.
 /// Demonstrates:
+/// - [BaubitModule] attribute for secure module loading
 /// - Two constructors (IConfiguration vs typed configuration)
 /// - Service registration in Load(ContainerBuilder)
 /// - Using Autofac's registration API with SingleInstance lifetime
 /// </summary>
-public class GreetingModule : Baubit.DI.Autofac.AModule<GreetingModuleConfiguration>
+[BaubitModule("greeting")]
+public class GreetingModule : Baubit.DI.Autofac.Module<GreetingModuleConfiguration>
 {
     // Constructor for loading from appsettings.json
     public GreetingModule(IConfiguration configuration) : base(configuration) { }

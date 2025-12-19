@@ -47,7 +47,7 @@ Baubit.DI.Autofac extends Baubit.DI's modular dependency injection framework wit
 ### 1. Define a Configuration
 
 ```csharp
-public class MyModuleConfiguration : Baubit.DI.Autofac.AConfiguration
+public class MyModuleConfiguration : Baubit.DI.Autofac.Configuration
 {
     public string ConnectionString { get; set; }
     public int PoolSize { get; set; } = 10;
@@ -57,7 +57,7 @@ public class MyModuleConfiguration : Baubit.DI.Autofac.AConfiguration
 ### 2. Create an Autofac Module
 
 ```csharp
-public class MyModule : Baubit.DI.Autofac.AModule<MyModuleConfiguration>
+public class MyModule : Baubit.DI.Autofac.Module<MyModuleConfiguration>
 {
     // Constructor for loading from IConfiguration (appsettings.json)
     public MyModule(IConfiguration configuration)
@@ -125,7 +125,7 @@ Load ALL modules programmatically using `IComponent`. No configuration file need
 
 ```csharp
 // Define a component that builds modules in code
-public class MyComponent : AComponent
+public class MyComponent : Component
 {
     protected override Result<ComponentBuilder> Build(ComponentBuilder builder)
     {
@@ -189,7 +189,7 @@ You can use **BOTH** Autofac modules and standard DI modules in the same applica
 
 ```csharp
 // Autofac module using ContainerBuilder
-public class AutofacModule : Baubit.DI.Autofac.AModule<MyConfig>
+public class AutofacModule : Baubit.DI.Autofac.Module<MyConfig>
 {
     public override void Load(ContainerBuilder containerBuilder)
     {
@@ -198,7 +198,7 @@ public class AutofacModule : Baubit.DI.Autofac.AModule<MyConfig>
 }
 
 // Standard DI module using IServiceCollection
-public class StandardModule : Baubit.DI.AModule<StandardConfig>
+public class StandardModule : Baubit.DI.Module<StandardConfig>
 {
     public override void Load(IServiceCollection services)
     {
@@ -296,14 +296,14 @@ Interface for Autofac dependency injection modules.
 </details>
 
 <details>
-<summary><strong>AModule / AModule&lt;TConfiguration&gt;</strong></summary>
+<summary><strong>Module / Module&lt;TConfiguration&gt;</strong></summary>
 
 Abstract base classes for Autofac modules.
 
 | Constructor | Description |
 |-------------|-------------|
-| `AModule(TConfiguration, List<IModule>)` | Create with config and nested modules |
-| `AModule(IConfiguration)` | Create from IConfiguration section |
+| `Module(TConfiguration, List<IModule>)` | Create with config and nested modules |
+| `Module(IConfiguration)` | Create from IConfiguration section |
 
 | Virtual Method | Description |
 |----------------|-------------|
@@ -343,15 +343,15 @@ The `Load` method automatically detects module types:
 </details>
 
 <details>
-<summary><strong>AConfiguration</strong></summary>
+<summary><strong>Configuration</strong></summary>
 
-Abstract base class for Autofac module configurations. Extends `Baubit.DI.AConfiguration`.
+Abstract base class for Autofac module configurations. Extends `Baubit.DI.Configuration`.
 
 </details>
 
 ---
 
-For additional API reference on base interfaces and classes (`IComponent`, `AComponent`, `ComponentBuilder`, `ModuleBuilder`, etc.), see [Baubit.DI API Reference](https://github.com/pnagoorkar/Baubit.DI#api-reference).
+For additional API reference on base interfaces and classes (`IComponent`, `Component`, `ComponentBuilder`, `ModuleBuilder`, etc.), see [Baubit.DI API Reference](https://github.com/pnagoorkar/Baubit.DI#api-reference).
 
 ## License
 
