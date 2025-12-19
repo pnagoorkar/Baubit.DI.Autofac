@@ -9,21 +9,21 @@ namespace Baubit.DI.Autofac
     /// <summary>
     /// Abstract base class for Autofac modules with strongly-typed configuration.
     /// </summary>
-    /// <typeparam name="TConfiguration">The type of configuration for this module, must inherit from <see cref="AConfiguration"/>.</typeparam>
+    /// <typeparam name="TConfiguration">The type of configuration for this module, must inherit from <see cref="Configuration"/>.</typeparam>
     /// <remarks>
-    /// This class extends <see cref="Baubit.DI.AModule{TConfiguration}"/> to provide Autofac-specific module functionality.
+    /// This class extends <see cref="Baubit.DI.Module{TConfiguration}"/> to provide Autofac-specific module functionality.
     /// Unlike standard DI modules that use IServiceCollection, Autofac modules register services using ContainerBuilder,
     /// enabling advanced Autofac features like interceptors, decorators, and custom lifetime scopes.
     /// 
     /// Thread safety: All public members are thread-safe.
     /// 
     /// Usage:
-    /// 1. Create a configuration class inheriting from <see cref="AConfiguration"/>
+    /// 1. Create a configuration class inheriting from <see cref="Configuration"/>
     /// 2. Create a module class inheriting from this class
     /// 3. Override <see cref="Load(ContainerBuilder)"/> to register services using Autofac's API
-    /// 4. Optionally override <see cref="Baubit.DI.AModule.OnInitialized"/> or <see cref="Baubit.DI.AModule.GetKnownDependencies"/> as needed
+    /// 4. Optionally override <see cref="Baubit.DI.Module.OnInitialized"/> or <see cref="Baubit.DI.Module.GetKnownDependencies"/> as needed
     /// </remarks>
-    public abstract class AModule<TConfiguration> : Baubit.DI.AModule<TConfiguration>, IModule where TConfiguration : AConfiguration
+    public abstract class Module<TConfiguration> : Baubit.DI.Module<TConfiguration>, IModule where TConfiguration : Configuration
     {
         /// <summary>
         /// Initializes a new instance of the module from configuration.
@@ -33,7 +33,7 @@ namespace Baubit.DI.Autofac
         /// This constructor is used when loading modules from appsettings.json or other IConfiguration sources.
         /// The configuration is automatically bound to the TConfiguration type.
         /// </remarks>
-        public AModule(IConfiguration configuration) : base(configuration)
+        public Module(IConfiguration configuration) : base(configuration)
         {
         }
 
@@ -46,7 +46,7 @@ namespace Baubit.DI.Autofac
         /// This constructor is used when creating modules programmatically, typically from IComponent implementations.
         /// Nested modules are loaded recursively when this module's Load method is called.
         /// </remarks>
-        public AModule(TConfiguration configuration, List<Baubit.DI.IModule> nestedModules = null) : base(configuration, nestedModules)
+        public Module(TConfiguration configuration, List<Baubit.DI.IModule> nestedModules = null) : base(configuration, nestedModules)
         {
         }
 

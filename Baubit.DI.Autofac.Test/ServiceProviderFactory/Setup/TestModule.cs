@@ -1,4 +1,5 @@
 using Autofac;
+using Baubit.DI;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 
@@ -7,7 +8,8 @@ namespace Baubit.DI.Autofac.Test.ServiceProviderFactory.Setup
     /// <summary>
     /// Test module that uses Autofac ContainerBuilder for registration.
     /// </summary>
-    public class TestModule : AModule<TestConfiguration>
+    [BaubitModule("test-autofac-module")]
+    public class TestModule : Module<TestConfiguration>
     {
         public TestModule(IConfiguration configuration) : base(configuration) { }
 
