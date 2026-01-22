@@ -59,11 +59,13 @@ namespace Baubit.DI.Autofac
         /// Autofac modules must use ContainerBuilder for registration. This method is marked as obsolete with error=true
         /// to prevent accidental usage of the IServiceCollection-based Load method.
         /// </remarks>
+#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
         [Obsolete("Use the overload with ContainerBuilder", error: true)]
         public override void Load(IServiceCollection services)
         {            
             throw new System.NotImplementedException($"Use the overload with ContainerBuilder");
         }
+#pragma warning restore CS0809
 
         /// <summary>
         /// Loads the module's service registrations into the Autofac container builder.
