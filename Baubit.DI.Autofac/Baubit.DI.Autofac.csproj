@@ -24,9 +24,19 @@
     <None Include="../LICENSE" Pack="true" PackagePath="." />
   </ItemGroup>
 
+  <!-- Use project reference when UseLocalBaubitDependencies is true -->
+  <ItemGroup Condition="'$(UseLocalBaubitDependencies)' == 'true'">
+    <ProjectReference Include="$(BaubitDIProjectPath)" />
+    <ProjectReference Include="$(BaubitDIGeneratorsProjectPath)" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- Use package reference when UseLocalBaubitDependencies is false -->
+  <ItemGroup Condition="'$(UseLocalBaubitDependencies)' != 'true'">
+    <PackageReference Include="Baubit.DI" />
+  </ItemGroup>
+
   <ItemGroup>
-    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="10.0.0" />
-    <PackageReference Include="Baubit.DI" Version="2025.51.3" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection"/>
   </ItemGroup>
 
 </Project>
